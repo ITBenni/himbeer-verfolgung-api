@@ -1,0 +1,140 @@
+# swagger.yml
+
+openapi: 3.0.0
+info:
+  title: "RFID Demo System"
+  description: "A simple demo system to show movement of RFID tags between network connected scanners"
+  version: "1.0.0"
+
+servers:
+  - url: /api
+
+components:
+  schemas:
+    Station:
+      type: object
+      required:
+        - station_uuid
+      properties:
+        station_uuid:
+          type: string
+        name:
+          type: string
+        tags:
+          type: object
+    Tag:
+      type: object
+      required:
+        - tag_uuid
+      properties:
+        tag_uuid:
+          type: string
+        last_seen:
+          type: integer
+        previously_seen:
+          type: integer
+  parameters:
+    station_uuid:
+      name: station_uuid
+      description: UUID of a station
+      in: path
+      required: True
+      schema:
+        type: string
+    tag_uuid:
+      name: tag_uuid
+      description: UUID of an RFID tag
+      in: path
+      required: True
+      schema:
+        type: string
+
+paths:
+  /stations:
+    get:
+      operationId: stations.read_all
+      tags:
+        - Stations
+      summary: Get a list of all known stations
+      responses:
+        "200":
+          description: Successfully read stations list
+    post:
+      operationId: stations.create
+      tags:
+        - Stations
+      summary: Create a new station
+      requestBody:
+          description: Station to create
+          required: True
+          content:
+            application/json:
+              schema:
+                x-body-name: station
+                $ref: "#/components/schemas/Station"
+      responses:
+        201:
+          description: Successfully created station
+
+  /stations/{station_uuid}:
+    get:
+      operationId: stations.read_one
+      tags:
+        - Stations
+      summary: Get information about station
+      parameters:
+        - $ref: "#/components/parameters/station_uuid"
+      responses:
+        200:
+          description: Successfully read station
+        404:
+          description: Station not found
+
+  /stations/{station_uuid}/tags:
+    get:
+      operationId: tags.read_all_associated
+      tags:
+        - Stations
+        - Tags
+      summary: Get a list of all tags last scanned at the station
+      responses:
+        "200":
+          description: Successfully read tag list of station
+    post:
+      operationId: tags.associate_with_station
+      tags:
+        - Tags
+      summary: Accociate tag with station and remove from previously associated stations
+      requestBody:
+          description: Tag to update
+          required: True
+          content:
+            application/json:
+              schema:
+                x-body-name: tag
+                $ref: "#/components/schemas/Tag"
+      responses:
+        200:
+          description: Successfully associated tag
+  /tags:
+    get:
+      operationId: tags.read_all
+      tags:
+        - Tags
+      summary: Get a list of all known tags
+      responses:
+        "200":
+          description: Successfully read tag list
+  /tags/{tag_uuid}:
+    get:
+      operationId: tags.read_one
+      tags:
+        - Tags
+      summary: Get information about tag
+      parameters:
+        - $ref: "#/components/parameters/tag_uuid"
+      responses:
+        200:
+          description: Successfully read tag
+        404:
+          description: Tag not found
